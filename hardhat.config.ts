@@ -286,7 +286,7 @@ const config: HardhatUserConfig = {
   gasReporter: {
     token: "ETH",
     currency: 'USD',
-    gasPrice: 10,
+    gasPrice: 7,
     enabled: true,
     coinmarketcap: '0caa3779-3cb2-4665-a7d3-652823b53908'
   }

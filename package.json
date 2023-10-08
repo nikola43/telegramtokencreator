@@ -60,5 +60,10 @@
     "undici": "^5.22.1",
     "uuid": "^9.0.0",
     "web3": "^1.9.0"
+  },
+  "eslintConfig": {
+    "extends": [
+      "standard"
+    ]
   }
 }

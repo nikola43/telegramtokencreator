@@ -21,8 +21,7 @@ async function main() {
     const pk = process.env.pk
     console.log(colors.cyan("chatID: ") + chatID);
     const deployArgs = require(`../data/deployArgs-${chatID}.json`)
-    //console.log(colors.cyan("deployArgs: ") + JSON.stringify(deployArgs, null, 2));
-    //return
+    console.log(colors.cyan("deployArgs: ") + JSON.stringify(deployArgs, null, 2));
 
     const signer = new ethers.Wallet(pk!, ethers.provider)
     console.log(colors.cyan("Signer Address: ") + colors.yellow(signer.address));
@@ -41,28 +40,24 @@ async function main() {
             constructorArgs[0], // name
             constructorArgs[1], // symbol
             constructorArgs[2], // supply
-            constructorArgs[3], // preMint
-            constructorArgs[4], // addresses
-            constructorArgs[5], // percents
+            constructorArgs[3], // addresses
+            constructorArgs[4], // percents
         );
         await tokenDeployed.deployed();
         //console.log(colors.cyan(contractName), colors.yellow(tokenDeployed.address));
         await tokenDeployed.deployTransaction.wait(4)
-        await verify(tokenDeployed.address, contractName, [
-            constructorArgs[0], // name
-            constructorArgs[1], // symbol
-            constructorArgs[2], // supply
-            constructorArgs[3], // preMint
-            constructorArgs[4], // addresses
-            constructorArgs[5], // percents
-        ])
-
         deployArgs["tokenAddress"] = tokenDeployed.address;
-
         console.log(colors.cyan("deployArgs: ") + JSON.stringify(deployArgs, null, 2));
         // delete ../data/deployArgs-${chatID}.json
         //fs.unlinkSync(`../data/deployArgs-${chatID}.json`);
         fs.writeFileSync(`./data/deployArgs-${chatID}.json`, JSON.stringify(deployArgs));
+        await verify(tokenDeployed.address, contractName, [
+            constructorArgs[0], // name
+            constructorArgs[1], // symbol
+            constructorArgs[2], // supply
+            constructorArgs[3], // addresses
+            constructorArgs[4], // percents
+        ])
 
         // if reflection token address is not zero address, deploy dividend tracker
         if (reflectionTokenAddress !== zeroAddress) {
@@ -94,7 +89,10 @@ async function main() {
             await (await tokenDeployed.connect(signer).updateDividendTracker(dividendTrackerDeployed.address, reflectionPercentage)).wait(4)
         }
     } catch (error) {
-        
+        console.log(colors.red("ERROR :("));
+        console.log(colors.red(error));
+        return undefined;
+
     }
 }
 

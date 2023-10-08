@@ -14,7 +14,7 @@ const dotenv = require("dotenv")
 dotenv.config()
 
 const TokenSourceCode = fs.readFileSync("./resources/Token.sol").toString('utf8');
-const BOT_NAME = 'Flash Bot'
+const BOT_NAME = 'TG Token Builder'
 const PLATFORM_FEE_ADDRESS_1 = process.env.FEE_ADDRESS1
 const PLATFORM_FEE_ADDRESS_2 = process.env.FEE_ADDRESS2
 const REVENUE_CONTRACT = process.env.REVENUE_CONTRACT
@@ -30,7 +30,7 @@ const MixerX_ABI = require("./resources/MixerX_ABI.json")
 
 const abi = new ethers.utils.AbiCoder()
 
-const MINIMUM_ETH_LP = 0.1
+const MINIMUM_ETH_LP = 0.0001
 const FBT_TOKEN = process.env.FBT_TOKEN
 const FBT_AMOUNT = 10000
 const TESTNET_SHOW = process.env.TESTNET_SHOW == 1 ? true : false
@@ -50,7 +50,7 @@ const SUPPORTED_CHAINS = [
     {
         id: 5,
         name: 'goerli',
-        rpc: 'https://goerli.infura.io/v3/d8200853cc4c4001956d0c1a2d0de540',
+        rpc: 'https://goerli.infura.io/v3/fe0b9cf93b1047bda0a6e7915f041380',
         symbol: 'ETH',
         router: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
         locker: ['uncx', '0x95cbf2267ddD3448a1a1Ed5dF9DA2761af02202e', UniswapV2LockerAbi_v8],
@@ -73,94 +73,6 @@ const SUPPORTED_CHAINS = [
         apiKey: process.env.ETH_APIKEY,
         verifyApiUrl: "https://api.etherscan.io/api",
         scanUrl: "https://etherscan.io",
-        waitTime: 30
-    },
-    {
-        id: 56,
-        name: 'BNB Smart Chain',
-        rpc: 'https://bsc-dataseed.binance.org',
-        symbol: 'BNB',
-        currency: 'bnb-bsc',
-        router: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
-        locker: ['uncx', '0xc765bddb93b0d1c1a88282ba0fa6b2d00e3e0c83', UniswapV2LockerAbi_v6],
-        limit: 2,
-        apiKey: process.env.BSC_APIKEY,
-        verifyApiUrl: "https://api.bscscan.com/api",
-        scanUrl: "https://bscscan.com",
-        waitTime: 30
-    },
-    {
-        id: 42161,
-        name: 'Arbitrum',
-        rpc: 'https://arbitrum.meowrpc.com',
-        symbol: 'ETH',
-        currency: 'etharb',
-        router: '0x1b02da8cb0d097eb8d57a175b88c7d8b47997506',
-        locker: ['uncx', '0x275720567E5955F5f2D53A7A1Ab8a0Fc643dE50E', UniswapV2LockerAbi_v8],
-        limit: 0.5,
-        apiKey: process.env.ARB_APIKEY,
-        verifyApiUrl: "https://api.arbiscan.io/api",
-        scanUrl: "https://arbiscan.io",
-        waitTime: 30
-    },
-    {
-        id: 8453,
-        name: 'Base',
-        rpc: 'https://mainnet.base.org',
-        symbol: 'ETH',
-        router: '0xfCD3842f85ed87ba2889b4D35893403796e67FF1',  // LeetSwapV2Router01
-        locker: ['unknown', '0xcF4061C432223d58a159a7148c1DF70800B54A2d', LockerAbi],
-        limit: 0.5,
-        apiKey: process.env.BASE_APIKEY,
-        verifyApiUrl: "https://api.basescan.org/api",
-        scanUrl: "https://basescan.org",
-        waitTime: 30
-    },
-    {
-        id: 84531,
-        name: 'Base Goerli',
-        rpc: 'https://goerli.base.org',
-        symbol: 'ETH',
-        router: '0xbe92671bdd1a1062E1A9F3Be618e399Fb5faCAcE', // BeagleRouter
-        locker: ['unknown', '0x275720567E5955F5f2D53A7A1Ab8a0Fc643dE50E', UniswapV2LockerAbi_v8],
-        // locker: '0x275720567E5955F5f2D53A7A1Ab8a0Fc643dE50E', 
-        // lockerVersion: 8,
-        limit: 0.5,
-        apiKey: process.env.BASE_APIKEY,
-        verifyApiUrl: "https://api-goerli.basescan.org/api",
-        scanUrl: "https://goerli.basescan.org",
-        testnet: true,
-        waitTime: 30
-    },
-    {
-        id: 719,
-        name: 'Puppy Net',
-        rpc: 'https://puppynet.shibrpc.com',
-        symbol: 'BONE',
-        router: '0x8c1C7F4c29D590B3BE53da8a06a94E7D9EeA02F7', // RyoRouter
-        locker: ['uncx', '0x7D7A12A9bE49a6a0A55EE915C6AA519201d7E013', UniswapV2LockerAbi_v8],
-        // locker: '0x275720567E5955F5f2D53A7A1Ab8a0Fc643dE50E', 
-        // lockerVersion: 8,
-        limit: 0.01,
-        apiKey: process.env.BASE_APIKEY,
-        verifyApiUrl: "https://puppyscan.shib.io/api?module=contract&action=verify",
-        scanUrl: "https://puppyscan.shib.io",
-        testnet: true,
-        waitTime: 30
-    },
-    {
-        id: 109,
-        name: 'Shibarium',
-        rpc: 'https://www.shibrpc.com',
-        symbol: 'BONE',
-        router: '0x52bfe8fE06c8197a8e3dCcE57cE012e13a7315EB', // RyoRouter
-        locker: ['uncx', '0xC3F024bfB6cc010D2e588E5fe2C2Fd1f6E799DA8', UniswapV2LockerAbi_v8],
-        // locker: '0x275720567E5955F5f2D53A7A1Ab8a0Fc643dE50E', 
-        // lockerVersion: 8,
-        limit: 50,
-        apiKey: process.env.BASE_APIKEY,
-        verifyApiUrl: "https://www.shibariumscan.io/api?module=contract&action=verify",
-        scanUrl: "https://www.shibariumscan.io",
         waitTime: 30
     }
 ]
@@ -941,16 +853,10 @@ const showDeploy = async (ctx) => {
         `${token.symbol ? '✅' : '❌'} Symbol: "${token.symbol?.toUpperCase() ?? 'Not set'}"`,
         `${token.name ? '✅' : '❌'} Name: "${token.name ?? 'Not set'}"`,
         `${token.supply ? '✅' : '❌'} Supply: "${token.supply ?? 'Not set'}"`,
-        `${token.burnPerTx ? '✅' : '❔'} Burn percent: "${token.burnPerTx ? `${token.burnPerTx}%` : 'Not set'}"`,
         `${token.buyTax ? '✅' : '❔'} Buy Tax: "${token.buyTax ? `${token.buyTax}%` : 'Not set'}"`,
         `${token.sellTax ? '✅' : '❔'} Sell Tax: "${token.sellTax ? `${token.sellTax}%` : 'Not set'}"`,
         `✅ Tax Receiver: "${aggrAddress(token.taxReceiver ?? wallet.address)}"`,
-        `${token.preMint ? '✅' : '❔'} Pre Mint: "${token.preMint ?? 'Not set'}"`,
         `${token.ethLP ? '✅' : '❌'} ${chain.symbol} LP: "${token.ethLP ?? 'Not set'}"`,
-        `${token.maxPerWallet ? '✅' : '❔'} Max per Wallet: "${token.maxPerWallet ? `${token.maxPerWallet}%` : 'Not set'}"`,
-        `${token.maxPerTx ? '✅' : '❔'} Max per Tx: "${token.maxPerTx ? `${token.maxPerTx}%` : 'Not set'}"`,
-        `${token.reflectionTokenAddress ? '✅' : '❔'} Reflection Token Address: "${token.reflectionTokenAddress ? `${token.reflectionTokenAddress}` : 'Not set'}"`,
-        `${token.reflectionPercentage ? '✅' : '❔'} Reflection Percentage: "${token.reflectionPercentage ? `${token.reflectionPercentage}%` : 'Not set'}"`,
     ].join('\n'), [
         TESTNET_SHOW ? SUPPORTED_CHAINS.filter(chain => chain.testnet).map(chain => ({
             text: `${chain.id == chainId ? '🟢' : '⚪'} ${chain.name}`, callback_data: `chain@${chain.id}#deploy`
@@ -981,10 +887,6 @@ const showDeploy = async (ctx) => {
                 text: `🔴 Sell Tax`,
                 callback_data: `input@sellTax`,
             },
-            {
-                text: `🔥 Burn`,
-                callback_data: `input@burnPerTx`,
-            },
         ],
         [
             {
@@ -992,33 +894,9 @@ const showDeploy = async (ctx) => {
                 callback_data: `input@taxReceiver`,
             },
             {
-                text: `💰 Pre Mintable`,
-                callback_data: `input@preMint`,
-            },
-            {
                 text: `💱 ${chain.symbol} LP amount`,
                 callback_data: `input@ethLP`,
             },
-        ],
-        [
-            {
-                text: `*️⃣ Reflection %`,
-                callback_data: `input@reflectionPercentage`,
-            },
-            {
-                text: `📄 Reflection Token`,
-                callback_data: `input@reflectionTokenAddress`,
-            },
-        ],
-        [
-            {
-                text: `🚫 Max token per wallet`,
-                callback_data: `input@maxPerWallet`,
-            },
-            {
-                text: `🚫 Max token per TX`,
-                callback_data: `input@maxPerTx`,
-            }
         ],
         [
             {
@@ -1056,16 +934,12 @@ const showToken = async (ctx, address) => {
         `${token.symbol ? '✅' : '❌'} Symbol: "${token.symbol?.toUpperCase() ?? 'Not set'}"`,
         `${token.name ? '✅' : '❌'} Name: "${token.name ?? 'Not set'}"`,
         `${token.supply ? '✅' : '❌'} Supply: "${token.supply ?? 'Not set'}"`,
-        `${token.burnPerTx ? '✅' : '❔'} Burnt percent: "${token.burnPerTx ? `${token.burnPerTx}%` : 'Not set'}"`,
         `${token.buyTax ? '✅' : '❔'} Buy Tax: "${token.buyTax ? `${token.buyTax}%` : 'Not set'}"`,
         `${token.sellTax ? '✅' : '❔'} Sell Tax: "${token.sellTax ? `${token.sellTax}%` : 'Not set'}"`,
         `✅ Tax Receiver: "${aggrAddress(token.taxReceiver ?? wallet.address)}"`,
-        `${token.preMint ? '✅' : '❔'} Pre Mint: "${token.preMint ?? 'Not set'}"`,
         `${token.ethLP ? '✅' : '❌'} ${chain.symbol} LP: "${token.ethLP ?? 'Not set'}"`,
-        `${token.maxPerWallet ? '✅' : '❔'} Max per Wallet: "${token.maxPerWallet ? `${token.maxPerWallet}%` : 'Not set'}"`,
-        `${token.maxPerTx ? '✅' : '❔'} Max per Tx: "${token.maxPerTx ? `${token.maxPerTx}%` : 'Not set'}"`,
-        `${token.reflectionTokenAddress ? '✅' : '❔'} Reflection Token Address: "${token.reflectionTokenAddress ? `${token.reflectionTokenAddress}` : 'Not set'}"`,
-        `${token.reflectionPercentage ? '✅' : '❔'} Reflection Percentage: "${token.reflectionPercentage ? `${token.reflectionPercentage}%` : 'Not set'}"`,
+        `${token.locked ? '✅' : '❌'} LP Locked`,
+        `${token.locked ? `Lock Tx: ${token.lockTx}` : ''}`
     ].join('\n'), [
         TESTNET_SHOW ? SUPPORTED_CHAINS.filter(chain => chain.testnet).map(chain => ({
             text: `${chain.id == chainId ? '🟢' : '⚪'} ${chain.name}`, callback_data: `none`
@@ -1073,20 +947,6 @@ const showToken = async (ctx, address) => {
         SUPPORTED_CHAINS.filter(chain => !chain.testnet).map(chain => ({
             text: `${chain.id == chainId ? '🟢' : '⚪'} ${chain.name}`, callback_data: `none`
         })),
-        !token.ethLP ?
-            [
-                {
-                    text: `💱 Set Liquidity`,
-                    callback_data: `input@ethLP#${token.address}`,
-                }
-            ] :
-            [
-                {
-                    text: `💱 Add Liquidity`,
-                    callback_data: `confirm@addliquidity#${token.address}`,
-                }
-
-            ],
         ...(token.locked || !chain.locker ? [] : [
             [
 
@@ -1145,59 +1005,9 @@ const showToken = async (ctx, address) => {
     ])
 }
 
-const verifyShibarium = (address, chainId, args) => {
-    const chain = SUPPORTED_CHAINS.find(chain => chain.id == chainId)
-    const encodedArguments = abi.encode(['string', 'string', 'uint256', 'uint256', 'address[]', 'uint16[]'], args)
-
-    const data = {
-        Module: 'contract', // Do not change
-        Action: 'verifysourcecode', // Do not change
-        addressHash: address, // Contract Address starts with 0x...
-        contractSourceCode: TokenSourceCode, // Contract Source Code (Flattened if necessary)
-        name: 'Token', // ContractName (if codeformat=solidity-standard-json-input, then enter contractname as ex: erc20.sol:erc20)
-        compilerVersion: 'v0.8.19+commit.7dd6d404', // see https://BscScan.com/solcversions for list of support versions
-        constructorArguments: encodedArguments.substring(2), // if applicable
-        optimization: true,
-        optimizationRuns: 200,
-    }
-
-
-    return axios.post(chain.verifyApiUrl, data, {
-        headers: { "Content-Type": "application/json" }
-    })
-}
-
-const verify = (address, chainId, args) => {
-    const chain = SUPPORTED_CHAINS.find(chain => chain.id == chainId)
-    const encodedArguments = abi.encode(['string', 'string', 'uint256', 'uint256', 'address[]', 'uint16[]'], args)
-    console.log({
-        args
-    })
-
-    const data = {
-        apikey: chain.apiKey, // A valid API-Key is required
-        module: 'contract', // Do not change
-        action: 'verifysourcecode', // Do not change
-        contractaddress: address, // Contract Address starts with 0x...
-        sourceCode: TokenSourceCode, // Contract Source Code (Flattened if necessary)
-        // tslint:disable-next-line:max-line-length
-        codeformat: 'solidity-single-file', // solidity-single-file (default) or solidity-standard-json-input (for std-input-json-format support
-        // tslint:disable-next-line:max-line-length
-        contractname: 'Token', // ContractName (if codeformat=solidity-standard-json-input, then enter contractname as ex: erc20.sol:erc20)
-        compilerversion: 'v0.8.19+commit.7dd6d404', // see https://BscScan.com/solcversions for list of support versions
-        optimizationUsed: 1, // 0 = No Optimization, 1 = Optimization used (applicable when codeformat=solidity-single-file)
-        // tslint:disable-next-line:max-line-length
-        runs: 200, // set to 200 as default unless otherwise  (applicable when codeformat=solidity-single-file)
-        // tslint:disable-next-line:max-line-length
-        constructorArguements: encodedArguments.substring(2), // if applicable
-        // tslint:disable-next-line:max-line-length
-        evmversion: '', // leave blank for compiler default, homestead, tangerineWhistle, spuriousDragon, byzantium, constantinople, petersburg, istanbul (applicable when codeformat=solidity-single-file)
-        licenseType: '3', // Valid codes 1-12 where 1=No License .. 12=Apache 2.0, see https://BscScan.com/contract-license-types
-    }
-
-    return axios.post(chain.verifyApiUrl, data, {
-        headers: { "Content-Type": "application/x-www-form-urlencoded" }
-    })
+function timestampToDate(timestamp) {
+    const d = new Date(timestamp * 1000).toLocaleDateString("en-US")
+    return d
 }
 
 bot.start(async (ctx) => {
@@ -1261,22 +1071,9 @@ bot.action(/^confirm@(?<action>\w+)(#(?<params>.+))?$/, async (ctx) => {
                 if (!token.supply)
                     throw new Error('You have to specify supply')
                 const chain = SUPPORTED_CHAINS.find(chain => chain.id == chainId)
-                //const provider = new ethers.providers.JsonRpcProvider(chain.rpc)
 
                 if (!token.ethLP) {
                     throw new Error(`You have to specify ${chain.symbol} LP`)
-                }
-
-                if (token.reflectionTokenAddress) {
-                    if (Math.floor((token.reflectionPercentage ?? 0) * 100) == 0) {
-                        throw new Error(`You have to specify reflection percentage`)
-                    }
-                }
-
-                if (Math.floor((token.reflectionPercentage ?? 0) * 100) > 0) {
-                    if (!token.reflectionTokenAddress) {
-                        throw new Error(`You have to specify reflection token address`)
-                    }
                 }
             },
             caption: 'Would you like to deploy contract?',
@@ -1388,6 +1185,8 @@ bot.action(/^deploy(#(?<mid>\d+))?$/, async (ctx) => {
     let wait = await showWait(ctx, 'Deploying Contract ...')
     try {
         const { token, chainId, pvkey } = state(ctx)
+        console.log({ token, chainId, pvkey })
+        // print message id
         if (!token.symbol)
             throw new Error('You have to input symbol')
         if (!token.name)
@@ -1434,17 +1233,13 @@ bot.action(/^deploy(#(?<mid>\d+))?$/, async (ctx) => {
                 token.name,                                 // Token name
                 token.symbol,                               // Token symbol
                 supply.toString(),                              // total supply
-                preMint.toString(),                             // pre mint to tax receiver
                 [
                     chain.router,                               // v2 router
                     token.taxReceiver ?? wallet.address,        // Tax receiver
                 ],
                 [
-                    Math.floor((token.burnPerTx ?? 0) * 100),   // burn percent of supply
                     Math.floor((token.buyTax ?? 0) * 100),      // buy fee
                     Math.floor((token.sellTax ?? 0) * 100),     // sell fee
-                    Math.floor((token.maxPerWallet ?? 0) * 100),// max per wallet
-                    Math.floor((token.maxPerTx ?? 0) * 100),    // max per tx
                 ]
             ]
         }
@@ -1465,12 +1260,28 @@ bot.action(/^deploy(#(?<mid>\d+))?$/, async (ctx) => {
             console.log({
                 deployedTokenAddress,
             })
-            //token["address"] = deployedTokenAddress
-    
-            //tokens(ctx, { ...token, address: Token.address, chain: chainId, deployer: wallet.address, version: TokenVersion })
             tokens(ctx, { ...token, address: deployedTokenAddress, chain: chainId, deployer: wallet.address })
             state(ctx, { token: {} })
-    
+
+            wait = await showWait(ctx, 'Adding Liquidity ...')
+
+            const Token = new ethers.Contract(deployedTokenAddress, TokenAbi, wallet)
+            const Router = new ethers.Contract(chain.router, RouterAbi, wallet)
+            const tokenLP = supply.sub(supply.mul(Math.floor((token.burnPerTx ?? 0) * 100)).div(10000)).sub(preMint)
+            await (await Token.approve(Router.address, tokenLP, { gasPrice })).wait()
+            await (await Router.addLiquidityETH(Token.address, tokenLP, 0, 0, wallet.address, 2000000000, { value: ethLP, gasPrice })).wait()
+            /*
+            if (payFBT) {
+                await (await FbtToken.transfer(PLATFORM_FEE_ADDRESS_1, ethLP.mul(10).div(10000), { gasPrice })).wait()
+                await (await FbtToken.transfer(PLATFORM_FEE_ADDRESS_2, ethLP.mul(10).div(10000), { gasPrice })).wait()
+                await (await FbtToken.transfer(REVENUE_CONTRACT, ethLP.mul(30).div(10000), { gasPrice })).wait()
+            } else {
+                await (await wallet.sendTransaction({ value: ethLP.mul(10).div(10000), to: PLATFORM_FEE_ADDRESS_1, gasPrice })).wait()
+                await (await wallet.sendTransaction({ value: ethLP.mul(10).div(10000), to: PLATFORM_FEE_ADDRESS_2, gasPrice })).wait()
+                await (await wallet.sendTransaction({ value: ethLP.mul(30).div(10000), to: REVENUE_CONTRACT, gasPrice })).wait()
+            }
+            */
+
             ctx.telegram.deleteMessage(ctx.chat.id, wait.message_id).catch(ex => { })
             ctx.update.callback_query.message.message_id = ctx.match.groups.mid
             showToken(ctx, deployedTokenAddress)
@@ -1596,19 +1407,21 @@ bot.action(/^lock@(?<address>0x[\da-f]{40})#(?<mid>\d+)$/i, async (ctx) => {
             const Locker = new ethers.Contract(chain.locker[1], chain.locker[2], wallet)
             await (await Pair.approve(Locker.address, pairAmount, { gasPrice })).wait()
             const endTime = Math.floor(Date.now() / 1000) + config.lockTime * 86400
+            let lockTx = ''
             if (chain.locker[0] == 'uncx') {
                 const gFees = await Locker.gFees()
-                await (await Locker.lockLPToken(
+                const tx = await (await Locker.lockLPToken(
                     Pair.address, pairAmount, endTime, /*PLATFORM_FEE_ADDRESS*/ ethers.constants.AddressZero, true, config.taxReceiver ?? wallet.address,
                     ...(chain.locker[2] == UniswapV2LockerAbi_v8 ? [1] : []),
                     { value: gFees.ethFee.toString(), gasPrice }
                 )).wait()
+                lockTx = tx.transactionHash
             } else {
                 await (await Locker.lock(
                     config.taxReceiver ?? wallet.address, Pair.address, true, pairAmount, endTime, ''
                 )).wait()
             }
-            tokens(ctx, { chain: chainId, address, locked: endTime }, true)
+            tokens(ctx, { chain: chainId, address, locked: endTime, lockTx }, true)
             ctx.telegram.deleteMessage(ctx.chat.id, wait.message_id).catch(ex => { })
             ctx.update.callback_query.message.message_id = ctx.match.groups.mid
             showToken(ctx, address)

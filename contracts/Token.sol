@@ -1,26 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
-
-// File contracts/Token.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20Burnable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Token is ERC20Burnable, Ownable {
     // ADDRESSESS -------------------------------------------------------------------------------------------
     address public immutable router;
     address public immutable lpPair; // Liquidity token address
-    address public treasuryAddress; // owner fee wallet address
+    address public treasury; // owner fee wallet address
 
     // VALUES -----------------------------------------------------------------------------------------------
     uint256 public swapThreshold; // swap tokens limit
 
     // BOOLEANS ---------------------------------------------------------------------------------------------
-    bool public inSwap; // used for dont take fee on swaps
+    bool private inSwap; // used for dont take fee on swaps
 
     // MAPPINGS ---------------------------------------------------------------------------------------------
-    mapping(address => bool) public automatedMarketMakerPairs;
-    mapping(address => bool) public _isExcludedFromFee; // list of users excluded from fee
+    mapping(address => bool) public pairs;
+    mapping(address => bool) public isExcludedFromFee; // list of users excluded from fee
 
     // STRUCTS ----------------------------------------------------------------------------------------------
     struct Fees {
@@ -30,7 +29,6 @@ contract Token is ERC20Burnable, Ownable {
     }
 
     // OBJECTS ----------------------------------------------------------------------------------------------
-
     Fees public _feesRates; // fees rates
 
     // MODIFIERS --------------------------------------------------------------------------------------------
@@ -49,22 +47,21 @@ contract Token is ERC20Burnable, Ownable {
         uint16[] memory percents //buyFee, sellFee
     ) ERC20(tokenName, tokenSymbol) {
         require(addresses.length == 2, "Invalid address argument");
+        require(addresses[0] != address(0), "Invalid router address");
+        require(addresses[1] != address(0), "Invalid treasury address");
         require(percents.length == 2, "Invalid percent argument");
-        require(percents[0] <= 9900 && percents[1] <= 9900, "Too hight tax");
+        require(percents[0] <= 4500 && percents[1] <= 4500, "Too hight tax");
 
         router = addresses[0];
-        treasuryAddress = addresses[1];
+        treasury = addresses[1];
 
-        _mint(msg.sender, supply);
-
-        // default fees
         _feesRates = Fees({
             buyFee: percents[0],
             sellFee: percents[1],
             transferFee: 0
         });
 
-        // Create a uniswap pair for this new token
+        // Create a uniswap pair
         (, bytes memory data) = factory().call(
             abi.encodeWithSelector(
                 bytes4(keccak256(bytes("createPair(address,address)"))),
@@ -73,19 +70,20 @@ contract Token is ERC20Burnable, Ownable {
             )
         );
         lpPair = abi.decode(data, (address));
-
-        automatedMarketMakerPairs[lpPair] = true;
+        pairs[lpPair] = true;
 
         // exclude from fees
-        _isExcludedFromFee[owner()] = true;
-        _isExcludedFromFee[treasuryAddress] = true;
-        _isExcludedFromFee[address(this)] = true;
+        isExcludedFromFee[owner()] = true;
+        isExcludedFromFee[treasury] = true;
+        isExcludedFromFee[address(this)] = true;
 
         // contract performs swap when have 1k tokens balance
         swapThreshold = 1000 ether;
+
+        _mint(msg.sender, supply);
     }
 
-    // To receive BNB from dexRouter when swapping
+    // To receive ETH from dexRouter when swapping
     receive() external payable {}
 
     // Set fees
@@ -93,43 +91,42 @@ contract Token is ERC20Burnable, Ownable {
         uint16 buyFee,
         uint16 sellFee,
         uint16 transferFee
-    ) external virtual onlyOwner {
-        require(buyFee <= 9900 && sellFee <= 9900, "Too hight tax");
+    ) external onlyOwner {
+        require(buyFee <= 4500 && sellFee <= 4500, "Too hight tax");
         _feesRates.buyFee = buyFee;
         _feesRates.sellFee = sellFee;
         _feesRates.transferFee = transferFee;
     }
 
-    function setSwapThreshold(uint256 value) external virtual onlyOwner {
+    function setSwapThreshold(uint256 value) external onlyOwner {
         swapThreshold = value;
     }
 
-    function setTreasuryAddress(address _treasuryAddress) public onlyOwner {
-        treasuryAddress = _treasuryAddress;
+    function setTreasuryAddress(address _treasury) public onlyOwner {
+        treasury = _treasury;
     }
 
-    // this function will be called every buy, sell or transfer
     function _transfer(
         address from,
         address to,
         uint256 amount
-    ) internal virtual override {
+    ) internal override {
         if (inSwap) {
             super._transfer(from, to, amount);
             return;
         }
 
-        // if we have more than swapThreshold tokens
-        uint256 contractTokenBalance = balanceOf(address(this));
+        // if contract balance is greater than swapThreshold
+        uint256 swapAmount = balanceOf(address(this));
         if (
-            contractTokenBalance >= swapThreshold &&
+            swapAmount >= swapThreshold &&
             !inSwap &&
             from != lpPair &&
-            balanceOf(lpPair) > 0 &&
-            !_isExcludedFromFee[to] &&
-            !_isExcludedFromFee[from]
+            balanceOf(lpPair) > swapAmount &&
+            !isExcludedFromFee[to] &&
+            !isExcludedFromFee[from]
         ) {
-            swapTokensForNative(contractTokenBalance, treasuryAddress);
+            swapTokensForNative(swapAmount, treasury);
         }
 
         _finalizeTransfer(from, to, amount);
@@ -179,46 +176,37 @@ contract Token is ERC20Burnable, Ownable {
         address from,
         address to,
         uint256 amount
-    ) internal virtual {
-        // by default receiver receive 100% of sended amount
-        uint256 amountReceived = amount;
-
-        // If takeFee is false there is 0% fee
-        bool takeFee = true;
-        if (_isExcludedFromFee[from] || _isExcludedFromFee[to]) {
+    ) internal {
+        bool takeFee = !inSwap;
+        if (isExcludedFromFee[from] || isExcludedFromFee[to]) {
             takeFee = false;
         }
 
-        // check if we need take fee or not
         if (takeFee) {
-            // if we need take fee
-            // calc how much we need take
             uint256 feeAmount = calcBuySellTransferFee(from, to, amount);
 
             if (feeAmount > 0) {
-                // and transfer fee to contract
-                amountReceived = amount - feeAmount;
+                amount -= feeAmount;
                 super._transfer(from, address(this), feeAmount);
             }
         }
 
-        // finally send remaining tokens to recipient
-        super._transfer(from, to, amountReceived);
+        super._transfer(from, to, amount);
     }
 
     function calcBuySellTransferFee(
         address from,
         address to,
         uint256 amount
-    ) internal view virtual returns (uint256) {
+    ) internal view returns (uint256) {
         uint256 feePercent;
 
         // BUY -> FROM == LP ADDRESS
-        if (automatedMarketMakerPairs[from]) {
+        if (pairs[from]) {
             feePercent = _feesRates.buyFee;
         }
         // SELL -> TO == LP ADDRESS
-        else if (automatedMarketMakerPairs[to]) {
+        else if (pairs[to]) {
             feePercent = _feesRates.sellFee;
         }
         // TRANSFER
@@ -234,18 +222,7 @@ contract Token is ERC20Burnable, Ownable {
         return 0;
     }
 
-    function excludeFromFee(
-        address account,
-        bool val
-    ) external virtual onlyOwner {
-        _isExcludedFromFee[account] = val;
-    }
-
-    function renounceOwnership() public virtual override onlyOwner {
-        require(
-            _feesRates.buyFee < 4500 && _feesRates.sellFee < 4500,
-            "Too hight tax, can't renounce ownership."
-        );
-        _transferOwnership(address(0));
+    function excludeFromFee(address account, bool val) external onlyOwner {
+        isExcludedFromFee[account] = val;
     }
 }
